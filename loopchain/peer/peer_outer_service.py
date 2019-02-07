@@ -162,7 +162,7 @@ class PeerOuterService(loopchain_pb2_grpc.PeerServiceServicer):
 
         return loopchain_pb2.Message(code=message_code.Response.success,
                                      meta=str(next_index),
-                                     object=pickle.dumps(tx_list))
+                                     object=json.dumps(tx_list))
 
     def __handler_reconnect_to_rs(self, request, context):
         logging.warning(f"RS lost peer info (candidate reason: RS restart)")

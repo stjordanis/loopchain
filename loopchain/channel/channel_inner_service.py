@@ -300,8 +300,8 @@ class ChannelInnerTask:
                 return response_code, None
 
     @message_queue_task(type_=MessageQueueType.Worker)
-    async def announce_unconfirmed_block(self, block_pickled) -> None:
-        unconfirmed_block = util.block_loads(block_pickled)
+    async def announce_unconfirmed_block(self, block_dumped) -> None:
+        unconfirmed_block = self._channel_service.block_manager.get_blockchain().block_loads(block_dumped)
 
         logging.debug(f"#block \n"
                       f"peer_id({unconfirmed_block.header.peer_id.hex()})\n"
@@ -383,7 +383,7 @@ class ChannelInnerTask:
 
         logging.info(f"block header : {block.header}")
 
-        block_dumped = util.block_dumps(block)
+        block_dumped = self._channel_service.block_manager.get_blockchain().block_dumps(block)
         return message_code.Response.success, block.header.height, blockchain.block_height, block_dumped
 
     @message_queue_task(type_=MessageQueueType.Worker)
@@ -596,7 +596,8 @@ class ChannelInnerTask:
         if precommit_block.height != last_block_height + 1:
             return message_code.Response.fail, "need block height sync.", b""
 
-        return message_code.Response.success, "success", pickle.dumps(precommit_block)
+        block_dumped = block_manager.get_blockchain().block_dumps(precommit_block)
+        return message_code.Response.success, "success", block_dumped
 
     @message_queue_task
     def get_tx_by_address(self, address, index):
